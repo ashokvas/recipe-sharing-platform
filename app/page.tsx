@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { getCurrentUser } from './actions/auth';
 import { LogoutButton } from '@/components/auth/LogoutButton';
@@ -18,9 +17,6 @@ export default async function Home() {
               <span className="text-xl font-bold text-gray-900">RecipeShare</span>
             </div>
             <div className="hidden md:flex items-center gap-8">
-              <a href="#recipes" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Browse Recipes
-              </a>
               <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Features
               </a>
@@ -75,12 +71,12 @@ export default async function Home() {
                 Join our community of food lovers. Share your culinary creations, discover new favorites, and bring delicious meals to your table.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all shadow-lg hover:shadow-xl font-medium">
+                <Link 
+                  href="/auth/signup"
+                  className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all shadow-lg hover:shadow-xl font-medium text-center"
+                >
                   Get Started Free
-                </button>
-                <button className="px-8 py-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium">
-                  Browse Recipes
-                </button>
+                </Link>
               </div>
               <div className="flex items-center gap-8 mt-12 pt-8 border-t border-gray-200">
                 <div>
@@ -115,66 +111,6 @@ export default async function Home() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Recipes */}
-      <section id="recipes" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Featured Recipes
-            </h2>
-            <p className="text-xl text-gray-600">
-              Explore our most popular recipes from the community
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { title: "Classic Pasta Carbonara", category: "Main Course", time: "30 min", emoji: "🍝" },
-              { title: "Chocolate Lava Cake", category: "Dessert", time: "45 min", emoji: "🍰" },
-              { title: "Fresh Summer Salad", category: "Appetizer", time: "15 min", emoji: "🥗" },
-            ].map((recipe, index) => (
-              <div key={index} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer group">
-                <div className="aspect-video bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center">
-                  <span className="text-7xl group-hover:scale-110 transition-transform">{recipe.emoji}</span>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
-                      {recipe.category}
-                    </span>
-                    <span className="text-sm text-gray-500">⏱️ {recipe.time}</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {recipe.title}
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    A delicious and easy-to-follow recipe that will impress your family and friends.
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex -space-x-2">
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-red-400 border-2 border-white" />
-                        ))}
-                      </div>
-                      <span className="text-sm text-gray-600">+120</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-yellow-500">⭐</span>
-                      <span className="font-semibold text-gray-900">4.8</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-12">
-            <button className="px-8 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium">
-              View All Recipes
-            </button>
           </div>
         </div>
       </section>
@@ -248,9 +184,12 @@ export default async function Home() {
           <p className="text-xl text-white/90 mb-8">
             Join thousands of food lovers sharing and discovering amazing recipes every day.
           </p>
-          <button className="px-8 py-4 bg-white text-orange-600 rounded-lg hover:bg-gray-100 transition-colors font-medium text-lg shadow-xl">
+          <Link 
+            href="/auth/signup"
+            className="inline-block px-8 py-4 bg-white text-orange-600 rounded-lg hover:bg-gray-100 transition-colors font-medium text-lg shadow-xl"
+          >
             Create Your Free Account
-          </button>
+          </Link>
           <p className="text-white/80 mt-4">
             No credit card required • Free forever
           </p>
