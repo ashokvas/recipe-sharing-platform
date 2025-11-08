@@ -1,6 +1,10 @@
 import Image from "next/image";
+import Link from "next/link";
+import { getCurrentUser } from './actions/auth';
+import { LogoutButton } from '@/components/auth/LogoutButton';
 
-export default function Home() {
+export default async function Home() {
+  const user = await getCurrentUser();
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -25,12 +29,32 @@ export default function Home() {
               </a>
             </div>
             <div className="flex items-center gap-3">
-              <button className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors">
-                Log In
-              </button>
-              <button className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all shadow-sm hover:shadow-md">
-                Sign Up
-              </button>
+              {user ? (
+                <>
+                  <Link
+                    href="/profile"
+                    className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-3 py-2 rounded-lg transition-all hidden md:inline"
+                  >
+                    {user.profile?.username || user.email}
+                  </Link>
+                  <LogoutButton />
+                </>
+              ) : (
+                <>
+                  <Link 
+                    href="/auth/login"
+                    className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors"
+                  >
+                    Log In
+                  </Link>
+                  <Link 
+                    href="/auth/signup"
+                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all shadow-sm hover:shadow-md"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
