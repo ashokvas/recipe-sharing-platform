@@ -1,21 +1,41 @@
 'use client';
 
-import { signUp } from '@/app/actions/auth';
+import { updateProfile } from '@/app/actions/profile';
 import { useState } from 'react';
+import type { Profile } from '@/lib/supabase/types';
 
-export function SignUpForm() {
+interface ProfileEditFormProps {
+  profile: Profile;
+  onSuccess?: () => void;
+}
+
+export function ProfileEditForm({ profile, onSuccess }: ProfileEditFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     setError(null);
+    setSuccess(false);
 
-    const result = await signUp(formData);
+    const result = await updateProfile(formData);
 
     if (result?.error) {
       setError(result.error);
       setLoading(false);
+    } else {
+      setSuccess(true);
+      setLoading(false);
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        setTimeout(() => {
+          onSuccess();
+        }, 1000);
+      } else {
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(false), 3000);
+      }
     }
   }
 
@@ -27,41 +47,34 @@ export function SignUpForm() {
         </div>
       )}
 
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+          Profile updated successfully! ✨
+        </div>
+      )}
+
+      {/* Username */}
       <div>
         <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-          Username *
+          Username
         </label>
         <input
           type="text"
           id="username"
           name="username"
-          required
+          defaultValue={profile.username || ''}
+          minLength={3}
+          maxLength={50}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400"
           placeholder="johndoe"
           disabled={loading}
         />
-      </div>
-
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-          Email *
-        </label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          required
-          pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"
-          title="Please enter a valid email address (e.g., name@example.com)"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400"
-          placeholder="john@example.com"
-          disabled={loading}
-        />
         <p className="mt-1 text-sm text-gray-500">
-          A valid email address is required
+          Must be between 3 and 50 characters
         </p>
       </div>
 
+      {/* Full Name */}
       <div>
         <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
           Full Name
@@ -70,12 +83,14 @@ export function SignUpForm() {
           type="text"
           id="fullName"
           name="fullName"
+          defaultValue={profile.full_name || ''}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400"
           placeholder="John Doe"
           disabled={loading}
         />
       </div>
 
+      {/* Bio */}
       <div>
         <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
           Bio
@@ -83,42 +98,28 @@ export function SignUpForm() {
         <textarea
           id="bio"
           name="bio"
-          rows={3}
+          rows={4}
+          defaultValue={profile.bio || ''}
+          maxLength={500}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400 resize-none"
-          placeholder="Tell us a little about yourself... (optional)"
+          placeholder="Tell us a little about yourself..."
           disabled={loading}
         />
         <p className="mt-1 text-sm text-gray-500">
-          You can add or update your bio later in your profile
+          Maximum 500 characters
         </p>
       </div>
 
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-          Password *
-        </label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          required
-          minLength={6}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400"
-          placeholder="••••••••"
+      {/* Submit Button */}
+      <div className="flex gap-4 pt-4">
+        <button
+          type="submit"
           disabled={loading}
-        />
-        <p className="mt-2 text-sm text-gray-500">
-          Must be at least 6 characters
-        </p>
+          className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all shadow-lg hover:shadow-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+        >
+          {loading ? 'Updating...' : 'Save Changes'}
+        </button>
       </div>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all shadow-lg hover:shadow-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-      >
-        {loading ? 'Creating Account...' : 'Sign Up'}
-      </button>
     </form>
   );
 }

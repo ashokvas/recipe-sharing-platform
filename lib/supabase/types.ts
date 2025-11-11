@@ -38,24 +38,30 @@ export interface Database {
 
 export interface Profile {
   id: string;
+  email: string;
   username: string | null;
   full_name: string | null;
+  bio: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface ProfileInsert {
   id: string;
+  email: string;
   username?: string | null;
   full_name?: string | null;
+  bio?: string | null;
   created_at?: string;
   updated_at?: string;
 }
 
 export interface ProfileUpdate {
   id?: string;
+  email?: string;
   username?: string | null;
   full_name?: string | null;
+  bio?: string | null;
   updated_at?: string;
 }
 

@@ -17,6 +17,7 @@ export async function signUp(formData: FormData) {
   const password = formData.get('password') as string;
   const username = formData.get('username') as string;
   const fullName = formData.get('fullName') as string;
+  const bio = formData.get('bio') as string;
 
   // Validate inputs
   if (!email || !password || !username) {
@@ -54,14 +55,16 @@ export async function signUp(formData: FormData) {
       .from('profiles')
       .insert({
         id: data.user.id,
+        email: email, // Required field
         username: username,
         full_name: fullName || null,
+        bio: bio || null, // Optional field
       });
 
-    // If profile creation fails, we continue anyway
-    // (user can create it manually later if needed)
+    // If profile creation fails, return error
     if (profileError) {
       console.error('Profile creation error:', profileError);
+      return { error: `Failed to create profile: ${profileError.message}` };
     }
   }
 

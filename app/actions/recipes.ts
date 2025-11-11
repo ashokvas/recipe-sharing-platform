@@ -26,12 +26,18 @@ export async function createRecipe(formData: FormData) {
     // Generate a username from email if needed
     const username = user.email?.split('@')[0] || `user_${user.id.substring(0, 8)}`;
     
+    if (!user.email) {
+      return { error: 'User email is required. Please complete your profile setup.' };
+    }
+    
     const { error: createProfileError } = await supabase
       .from('profiles')
       .insert({
         id: user.id,
+        email: user.email, // Required field
         username: username,
         full_name: null,
+        bio: null, // Optional field
       });
 
     if (createProfileError) {
