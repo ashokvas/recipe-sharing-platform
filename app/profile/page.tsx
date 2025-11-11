@@ -25,10 +25,10 @@ export default async function ProfilePage() {
       <div className="max-w-3xl mx-auto">
         <div className="mb-6">
           <Link 
-            href="/"
+            href="/dashboard"
             className="text-orange-600 hover:text-orange-700 font-medium"
           >
-            ← Back to Home
+            ← Back to Dashboard
           </Link>
         </div>
 

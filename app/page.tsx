@@ -1,9 +1,16 @@
 import Link from "next/link";
 import { getCurrentUser } from './actions/auth';
 import { LogoutButton } from '@/components/auth/LogoutButton';
+import { redirect } from 'next/navigation';
 
 export default async function Home() {
   const user = await getCurrentUser();
+  
+  // If user is logged in, redirect to dashboard
+  if (user) {
+    redirect('/dashboard');
+  }
+  
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
