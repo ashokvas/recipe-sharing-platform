@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { RecipeCard } from '@/components/recipes/RecipeCard';
+import { RecipeList } from '@/components/recipes/RecipeList';
 import { LogoutButton } from '@/components/auth/LogoutButton';
 
 export default async function DashboardPage() {
@@ -21,7 +21,7 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .maybeSingle();
 
-  // Fetch all recipes with author information
+  // Fetch all recipes with author information and social stats
   const { data: recipes, error: recipesError } = await supabase
     .from('recipes')
     .select(`
@@ -33,6 +33,32 @@ export default async function DashboardPage() {
       )
     `)
     .order('created_at', { ascending: false });
+
+  // Fetch social stats for all recipes
+  const recipeIds = recipes?.map(r => r.id) || [];
+  
+  // Get like counts
+  const { data: likeCounts } = await supabase
+    .from('likes')
+    .select('recipe_id')
+    .in('recipe_id', recipeIds);
+
+  // Get comment counts
+  const { data: commentCounts } = await supabase
+    .from('comments')
+    .select('recipe_id')
+    .in('recipe_id', recipeIds);
+
+  // Add counts to recipes
+  const recipesWithStats = recipes?.map(recipe => {
+    const likeCount = likeCounts?.filter(l => l.recipe_id === recipe.id).length || 0;
+    const commentCount = commentCounts?.filter(c => c.recipe_id === recipe.id).length || 0;
+    return {
+      ...recipe,
+      like_count: likeCount,
+      comment_count: commentCount,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -53,6 +79,12 @@ export default async function DashboardPage() {
                 </Link>
                 <Link href="/recipes/new" className="text-gray-600 hover:text-gray-900 transition-colors">
                   Upload Recipe
+                </Link>
+                <Link href="/recipes/my" className="text-gray-600 hover:text-gray-900 transition-colors">
+                  My Recipes
+                </Link>
+                <Link href="/recipes/saved" className="text-gray-600 hover:text-gray-900 transition-colors">
+                  Saved Recipes
                 </Link>
               </nav>
             </div>
@@ -82,7 +114,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Link
             href="/recipes/new"
             className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-6 rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-lg hover:shadow-xl"
@@ -93,15 +125,6 @@ export default async function DashboardPage() {
           </Link>
           
           <Link
-            href="/recipes"
-            className="bg-white p-6 rounded-xl border border-gray-200 hover:border-orange-300 transition-colors hover:shadow-lg"
-          >
-            <div className="text-3xl mb-2">🔍</div>
-            <h3 className="font-semibold text-lg mb-1 text-gray-900">Browse All</h3>
-            <p className="text-gray-600 text-sm">Explore all recipes</p>
-          </Link>
-          
-          <Link
             href="/recipes/my"
             className="bg-white p-6 rounded-xl border border-gray-200 hover:border-orange-300 transition-colors hover:shadow-lg"
           >
@@ -109,32 +132,34 @@ export default async function DashboardPage() {
             <h3 className="font-semibold text-lg mb-1 text-gray-900">My Recipes</h3>
             <p className="text-gray-600 text-sm">View your uploads</p>
           </Link>
+          
+          <Link
+            href="/recipes/saved"
+            className="bg-white p-6 rounded-xl border border-gray-200 hover:border-orange-300 transition-colors hover:shadow-lg"
+          >
+            <div className="text-3xl mb-2">❤️</div>
+            <h3 className="font-semibold text-lg mb-1 text-gray-900">Saved Recipes</h3>
+            <p className="text-gray-600 text-sm">Your liked recipes</p>
+          </Link>
+          
+          <Link
+            href="/dashboard"
+            className="bg-white p-6 rounded-xl border border-gray-200 hover:border-orange-300 transition-colors hover:shadow-lg"
+          >
+            <div className="text-3xl mb-2">🔍</div>
+            <h3 className="font-semibold text-lg mb-1 text-gray-900">Browse All</h3>
+            <p className="text-gray-600 text-sm">Explore all recipes</p>
+          </Link>
         </div>
 
         {/* Recipes Section */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Latest Recipes
-            </h2>
-            <span className="text-gray-600">
-              {recipes?.length || 0} {recipes?.length === 1 ? 'recipe' : 'recipes'}
-            </span>
-          </div>
-        </div>
-
-        {/* Recipes Grid */}
         {recipesError ? (
           <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg">
             <p className="font-semibold">Error loading recipes</p>
             <p className="text-sm mt-1">{recipesError.message}</p>
           </div>
-        ) : recipes && recipes.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recipes.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} />
-            ))}
-          </div>
+        ) : recipesWithStats && recipesWithStats.length > 0 ? (
+          <RecipeList initialRecipes={recipesWithStats} />
         ) : (
           <div className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
             <div className="text-6xl mb-4">🍽️</div>

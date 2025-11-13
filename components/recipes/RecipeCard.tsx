@@ -2,7 +2,10 @@ import Link from 'next/link';
 import type { RecipeWithAuthor } from '@/lib/supabase/types';
 
 interface RecipeCardProps {
-  recipe: RecipeWithAuthor;
+  recipe: RecipeWithAuthor & {
+    like_count?: number;
+    comment_count?: number;
+  };
 }
 
 export function RecipeCard({ recipe }: RecipeCardProps) {
@@ -53,6 +56,24 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
             <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-1">
               {recipe.description}
             </p>
+          )}
+
+          {/* Social Stats */}
+          {(recipe.like_count !== undefined || recipe.comment_count !== undefined) && (
+            <div className="flex items-center gap-4 mb-3 text-sm text-gray-500">
+              {recipe.like_count !== undefined && (
+                <div className="flex items-center gap-1">
+                  <span>❤️</span>
+                  <span>{recipe.like_count}</span>
+                </div>
+              )}
+              {recipe.comment_count !== undefined && (
+                <div className="flex items-center gap-1">
+                  <span>💬</span>
+                  <span>{recipe.comment_count}</span>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Author & Date */}

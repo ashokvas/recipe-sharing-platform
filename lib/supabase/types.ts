@@ -16,14 +16,41 @@ export interface Database {
         Insert: RecipeInsert;
         Update: RecipeUpdate;
       };
+      likes: {
+        Row: Like;
+        Insert: LikeInsert;
+        Update: LikeUpdate;
+      };
+      comments: {
+        Row: Comment;
+        Insert: CommentInsert;
+        Update: CommentUpdate;
+      };
     };
     Views: {
-      [_ in never]: never;
+      recipes_with_likes: {
+        Row: RecipeWithLikes;
+      };
+      recipes_with_comments: {
+        Row: RecipeWithComments;
+      };
     };
     Functions: {
       search_recipes: {
         Args: { search_query: string };
         Returns: Recipe[];
+      };
+      get_recipe_like_count: {
+        Args: { recipe_uuid: string };
+        Returns: number;
+      };
+      user_has_liked_recipe: {
+        Args: { recipe_uuid: string; user_uuid: string };
+        Returns: boolean;
+      };
+      get_recipe_comment_count: {
+        Args: { recipe_uuid: string };
+        Returns: number;
       };
     };
     Enums: {
@@ -115,4 +142,89 @@ export interface RecipeUpdate {
 
 export interface RecipeWithAuthor extends Recipe {
   profiles: Profile | null;
+}
+
+// =====================================================
+// Like Types
+// =====================================================
+
+export interface Like {
+  id: string;
+  user_id: string;
+  recipe_id: string;
+  created_at: string;
+}
+
+export interface LikeInsert {
+  id?: string;
+  user_id: string;
+  recipe_id: string;
+  created_at?: string;
+}
+
+export interface LikeUpdate {
+  id?: string;
+  user_id?: string;
+  recipe_id?: string;
+  created_at?: string;
+}
+
+// =====================================================
+// Comment Types
+// =====================================================
+
+export interface Comment {
+  id: string;
+  user_id: string;
+  recipe_id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CommentInsert {
+  id?: string;
+  user_id: string;
+  recipe_id: string;
+  content: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CommentUpdate {
+  id?: string;
+  user_id?: string;
+  recipe_id?: string;
+  content?: string;
+  updated_at?: string;
+}
+
+// =====================================================
+// Comment with Author Info (for joins)
+// =====================================================
+
+export interface CommentWithAuthor extends Comment {
+  profiles: Profile | null;
+}
+
+// =====================================================
+// Recipe with Social Stats (for views)
+// =====================================================
+
+export interface RecipeWithLikes extends Recipe {
+  like_count: number;
+}
+
+export interface RecipeWithComments extends Recipe {
+  comment_count: number;
+}
+
+// =====================================================
+// Recipe with Full Social Info
+// =====================================================
+
+export interface RecipeWithSocial extends RecipeWithAuthor {
+  like_count?: number;
+  comment_count?: number;
+  user_has_liked?: boolean;
 }

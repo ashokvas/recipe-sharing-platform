@@ -33,8 +33,10 @@ export function ProfileEditForm({ profile, onSuccess }: ProfileEditFormProps) {
           onSuccess();
         }, 1000);
       } else {
-        // Clear success message after 3 seconds
-        setTimeout(() => setSuccess(false), 3000);
+        // Refresh the page after successful update to show new data
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       }
     }
   }
@@ -49,7 +51,7 @@ export function ProfileEditForm({ profile, onSuccess }: ProfileEditFormProps) {
 
       {success && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-          Profile updated successfully! ✨
+          Profile updated successfully!
         </div>
       )}
 
@@ -115,9 +117,9 @@ export function ProfileEditForm({ profile, onSuccess }: ProfileEditFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all shadow-lg hover:shadow-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+          className="w-full px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
         >
-          {loading ? 'Updating...' : 'Save Changes'}
+          {loading ? 'Saving...' : 'Save Profile'}
         </button>
       </div>
     </form>

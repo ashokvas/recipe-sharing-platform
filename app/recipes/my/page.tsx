@@ -35,6 +35,32 @@ export default async function MyRecipesPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
+  // Fetch social stats for user's recipes
+  const recipeIds = recipes?.map(r => r.id) || [];
+  
+  // Get like counts
+  const { data: likeCounts } = await supabase
+    .from('likes')
+    .select('recipe_id')
+    .in('recipe_id', recipeIds);
+
+  // Get comment counts
+  const { data: commentCounts } = await supabase
+    .from('comments')
+    .select('recipe_id')
+    .in('recipe_id', recipeIds);
+
+  // Add counts to recipes
+  const recipesWithStats = recipes?.map(recipe => {
+    const likeCount = likeCounts?.filter(l => l.recipe_id === recipe.id).length || 0;
+    const commentCount = commentCounts?.filter(c => c.recipe_id === recipe.id).length || 0;
+    return {
+      ...recipe,
+      like_count: likeCount,
+      comment_count: commentCount,
+    };
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -54,6 +80,12 @@ export default async function MyRecipesPage() {
                 </Link>
                 <Link href="/recipes/new" className="text-gray-600 hover:text-gray-900 transition-colors">
                   Upload Recipe
+                </Link>
+                <Link href="/recipes/my" className="text-gray-900 font-medium">
+                  My Recipes
+                </Link>
+                <Link href="/recipes/saved" className="text-gray-600 hover:text-gray-900 transition-colors">
+                  Saved Recipes
                 </Link>
               </nav>
             </div>
@@ -94,12 +126,12 @@ export default async function MyRecipesPage() {
             <p className="font-semibold">Error loading your recipes</p>
             <p className="text-sm mt-1">{recipesError.message}</p>
           </div>
-        ) : recipes && recipes.length > 0 ? (
+        ) : recipesWithStats && recipesWithStats.length > 0 ? (
           <>
             <div className="mb-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-700">
-                  You have {recipes.length} {recipes.length === 1 ? 'recipe' : 'recipes'}
+                  You have {recipesWithStats.length} {recipesWithStats.length === 1 ? 'recipe' : 'recipes'}
                 </h2>
                 <Link
                   href="/recipes/new"
@@ -110,7 +142,7 @@ export default async function MyRecipesPage() {
               </div>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recipes.map((recipe) => (
+              {recipesWithStats.map((recipe) => (
                 <RecipeCard key={recipe.id} recipe={recipe} />
               ))}
             </div>

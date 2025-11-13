@@ -3,15 +3,30 @@
 import { createRecipe } from '@/app/actions/recipes';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { DynamicFieldList } from './DynamicFieldList';
 
 export function RecipeUploadForm() {
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [ingredients, setIngredients] = useState<string[]>(['']);
+  const [instructions, setInstructions] = useState<string[]>(['']);
   const router = useRouter();
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(false);
+
+    const formData = new FormData(e.currentTarget);
+    
+    // Combine ingredients and instructions arrays into strings
+    const ingredientsString = ingredients.filter(ing => ing.trim()).join('\n');
+    const instructionsString = instructions.filter(inst => inst.trim()).join('\n');
+    
+    formData.set('ingredients', ingredientsString);
+    formData.set('instructions', instructionsString);
 
     const result = await createRecipe(formData);
 
@@ -19,16 +34,26 @@ export function RecipeUploadForm() {
       setError(result.error);
       setLoading(false);
     } else {
-      // Success! Redirect to dashboard
-      router.push('/dashboard');
+      setSuccess(true);
+      setLoading(false);
+      // Redirect to dashboard after showing success message
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 1500);
     }
   }
 
   return (
-    <form action={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
           {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+          Recipe created successfully!
         </div>
       )}
 
@@ -66,48 +91,24 @@ export function RecipeUploadForm() {
       </div>
 
       {/* Ingredients */}
-      <div>
-        <label htmlFor="ingredients" className="block text-sm font-medium text-gray-700 mb-2">
-          Ingredients *
-        </label>
-        <textarea
-          id="ingredients"
-          name="ingredients"
-          required
-          rows={6}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400 resize-none"
-          placeholder="List your ingredients, one per line:
-- 2 cups all-purpose flour
-- 1 cup sugar
-- 2 eggs"
-          disabled={loading}
-        />
-        <p className="mt-2 text-sm text-gray-500">
-          List each ingredient on a new line
-        </p>
-      </div>
+      <DynamicFieldList
+        label="Ingredients *"
+        fields={ingredients}
+        onChange={setIngredients}
+        placeholder="Enter ingredient"
+        addButtonText="Add Ingredient"
+        disabled={loading}
+      />
 
       {/* Instructions */}
-      <div>
-        <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-2">
-          Instructions *
-        </label>
-        <textarea
-          id="instructions"
-          name="instructions"
-          required
-          rows={8}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400 resize-none"
-          placeholder="Step-by-step instructions:
-1. Preheat oven to 350°F
-2. Mix dry ingredients in a bowl
-3. Add wet ingredients and combine"
-          disabled={loading}
-        />
-        <p className="mt-2 text-sm text-gray-500">
-          Write clear, step-by-step instructions
-        </p>
-      </div>
+      <DynamicFieldList
+        label="Instructions *"
+        fields={instructions}
+        onChange={setInstructions}
+        placeholder="Enter instruction step"
+        addButtonText="Add Step"
+        disabled={loading}
+      />
 
       <div className="grid md:grid-cols-3 gap-4">
         {/* Cooking Time */}
@@ -161,21 +162,13 @@ export function RecipeUploadForm() {
       </div>
 
       {/* Submit Button */}
-      <div className="flex gap-4 pt-4">
+      <div className="pt-4">
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all shadow-lg hover:shadow-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+          className="w-full px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
         >
-          {loading ? 'Uploading...' : 'Upload Recipe'}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          disabled={loading}
-          className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Cancel
+          {loading ? 'Creating...' : 'Create Recipe'}
         </button>
       </div>
     </form>

@@ -3,6 +3,9 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { LogoutButton } from '@/components/auth/LogoutButton';
 import { DeleteRecipeButton } from '@/components/recipes/DeleteRecipeButton';
+import { LikeButton } from '@/components/social/LikeButton';
+import { CommentSection } from '@/components/social/CommentSection';
+import { getLikeCount, hasUserLiked } from '@/app/actions/likes';
 
 interface RecipeDetailPageProps {
   params: Promise<{ id: string }>;
@@ -43,6 +46,10 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
   const ingredientsList = recipe.ingredients.split('\n').filter(line => line.trim());
   const instructionsList = recipe.instructions.split('\n').filter(line => line.trim());
 
+  // Fetch social data
+  const { count: likeCount } = await getLikeCount(id);
+  const { liked: userHasLiked } = await hasUserLiked(id);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -61,6 +68,12 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
               </Link>
               <Link href="/recipes/new" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Upload Recipe
+              </Link>
+              <Link href="/recipes/my" className="text-gray-600 hover:text-gray-900 transition-colors">
+                My Recipes
+              </Link>
+              <Link href="/recipes/saved" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Saved Recipes
               </Link>
             </nav>
           </div>
@@ -188,19 +201,35 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
               </div>
             </div>
 
-            {/* Action Buttons (if owner) */}
-            {isOwner && (
-              <div className="pt-8 border-t border-gray-200 flex gap-4 flex-wrap">
-                <Link
-                  href={`/recipes/${recipe.id}/edit`}
-                  className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium inline-block text-center"
-                >
-                  Edit Recipe
-                </Link>
-                <DeleteRecipeButton recipeId={recipe.id} />
+            {/* Social Actions */}
+            <div className="pt-8 border-t border-gray-200">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <LikeButton
+                  recipeId={recipe.id}
+                  initialLiked={userHasLiked}
+                  initialCount={likeCount}
+                />
+                
+                {/* Action Buttons (if owner) */}
+                {isOwner && (
+                  <div className="flex gap-4 flex-wrap">
+                    <Link
+                      href={`/recipes/${recipe.id}/edit`}
+                      className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium inline-block text-center"
+                    >
+                      Edit Recipe
+                    </Link>
+                    <DeleteRecipeButton recipeId={recipe.id} />
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
+        </div>
+
+        {/* Comments Section */}
+        <div className="mt-8 bg-white rounded-2xl shadow-xl p-8 md:p-12">
+          <CommentSection recipeId={recipe.id} />
         </div>
       </main>
     </div>

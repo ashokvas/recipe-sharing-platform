@@ -1,9 +1,10 @@
 'use client';
 
 import { updateRecipe } from '@/app/actions/recipes';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Recipe } from '@/lib/supabase/types';
+import { DynamicFieldList } from './DynamicFieldList';
 
 interface RecipeEditFormProps {
   recipe: Recipe;
@@ -11,12 +12,38 @@ interface RecipeEditFormProps {
 
 export function RecipeEditForm({ recipe }: RecipeEditFormProps) {
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [ingredients, setIngredients] = useState<string[]>(['']);
+  const [instructions, setInstructions] = useState<string[]>(['']);
   const router = useRouter();
 
-  async function handleSubmit(formData: FormData) {
+  // Parse existing ingredients and instructions from recipe
+  useEffect(() => {
+    if (recipe.ingredients) {
+      const parsed = recipe.ingredients.split('\n').filter(ing => ing.trim());
+      setIngredients(parsed.length > 0 ? parsed : ['']);
+    }
+    if (recipe.instructions) {
+      const parsed = recipe.instructions.split('\n').filter(inst => inst.trim());
+      setInstructions(parsed.length > 0 ? parsed : ['']);
+    }
+  }, [recipe]);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(false);
+
+    const formData = new FormData(e.currentTarget);
+    
+    // Combine ingredients and instructions arrays into strings
+    const ingredientsString = ingredients.filter(ing => ing.trim()).join('\n');
+    const instructionsString = instructions.filter(inst => inst.trim()).join('\n');
+    
+    formData.set('ingredients', ingredientsString);
+    formData.set('instructions', instructionsString);
 
     const result = await updateRecipe(recipe.id, formData);
 
@@ -24,17 +51,27 @@ export function RecipeEditForm({ recipe }: RecipeEditFormProps) {
       setError(result.error);
       setLoading(false);
     } else {
-      // Success! Redirect to recipe detail page
-      router.push(`/recipes/${recipe.id}`);
-      router.refresh();
+      setSuccess(true);
+      setLoading(false);
+      // Redirect to recipe detail page after showing success message
+      setTimeout(() => {
+        router.push(`/recipes/${recipe.id}`);
+        router.refresh();
+      }, 1500);
     }
   }
 
   return (
-    <form action={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
           {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+          Recipe updated successfully!
         </div>
       )}
 
@@ -74,44 +111,24 @@ export function RecipeEditForm({ recipe }: RecipeEditFormProps) {
       </div>
 
       {/* Ingredients */}
-      <div>
-        <label htmlFor="ingredients" className="block text-sm font-medium text-gray-700 mb-2">
-          Ingredients *
-        </label>
-        <textarea
-          id="ingredients"
-          name="ingredients"
-          required
-          rows={6}
-          defaultValue={recipe.ingredients}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400 resize-none"
-          placeholder="List your ingredients, one per line"
-          disabled={loading}
-        />
-        <p className="mt-2 text-sm text-gray-500">
-          List each ingredient on a new line
-        </p>
-      </div>
+      <DynamicFieldList
+        label="Ingredients *"
+        fields={ingredients}
+        onChange={setIngredients}
+        placeholder="Enter ingredient"
+        addButtonText="Add Ingredient"
+        disabled={loading}
+      />
 
       {/* Instructions */}
-      <div>
-        <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-2">
-          Instructions *
-        </label>
-        <textarea
-          id="instructions"
-          name="instructions"
-          required
-          rows={8}
-          defaultValue={recipe.instructions}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400 resize-none"
-          placeholder="Step-by-step instructions"
-          disabled={loading}
-        />
-        <p className="mt-2 text-sm text-gray-500">
-          Write clear, step-by-step instructions
-        </p>
-      </div>
+      <DynamicFieldList
+        label="Instructions *"
+        fields={instructions}
+        onChange={setInstructions}
+        placeholder="Enter instruction step"
+        addButtonText="Add Step"
+        disabled={loading}
+      />
 
       <div className="grid md:grid-cols-3 gap-4">
         {/* Cooking Time */}
@@ -172,9 +189,9 @@ export function RecipeEditForm({ recipe }: RecipeEditFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all shadow-lg hover:shadow-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+          className="w-full px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
         >
-          {loading ? 'Updating...' : 'Update Recipe'}
+          {loading ? 'Saving...' : 'Save Recipe'}
         </button>
         <button
           type="button"
